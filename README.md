@@ -32,7 +32,7 @@ services:
     
   # Frontend Vue.js
   frontend:
-    image: pi3-test-frontend:latest
+    image: redneath/pi3-test-frontend:latest
     container_name: vue_frontend
     networks:
       - app-network
@@ -56,7 +56,7 @@ Then you will need to complete it with the appropriate image for the backend you
 1. Create a `.env` file with the appropriate data (see the `example.env` file).
 2. Add the following to the `docker-compose.yaml` file:
 ```yaml
-    image: pi3-test-express:latest
+    image: redneath/pi3-test-express:latest
     container_name: express_backend
     networks:
       - app-network
