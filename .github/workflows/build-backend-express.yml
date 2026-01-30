@@ -25,4 +25,7 @@ jobs:
         with:
           context: ./js/express
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/pi3-test-express:${{ github.ref_name }}
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/pi3-test-express:${{ github.ref_name }}
+            ${{ secrets.DOCKER_HUB_USERNAME }}/pi3-test-express:latest
+          platforms: linux/amd64,linux/arm64
