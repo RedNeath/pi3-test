@@ -19,13 +19,13 @@ services:
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "27017:27017"
+      - "3306:3306"
     volumes:
       - mariadb_data:/config
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
+      interval: 60s
       timeout: 5s
       retries: 5
 
@@ -40,7 +40,7 @@ services:
     networks:
       - app-network
     ports:
-      - "9000:9000"
+      - "9000:80"
     depends_on:
       - backend
     restart: unless-stopped
@@ -77,5 +77,15 @@ Then you will need to complete it with the appropriate image for the backend you
         condition: service_healthy
     restart: unless-stopped
 ```
+3. Once the compose stack is launched, connect to the `express_backend` (`docker exec -it express_backend sh`) container and execute the following commands:
+```sh
+npm install -g sequelize-cli
+npm run db:setup
+```
 
 When launching the stack, the frontend will be available at [`http://localhost:9000`](http://localhost:9000) and the backend at [`http://localhost:3000`](http://localhost:3000).
+
+# Conduct the test
+Once you have a running backend, you can run the test using the `clients.py` script at the root of this repository. You will just need to change the URI for the IP address of your pi 3.
+
+And to measure the power consumption during the test, you'd preferrably want to use a "connected" plug, but if you don't have one, you can use the monitor argument of the clients script. It will keep an eye on the CPU load, and thus estimate roughly the power used by the pi 3.
