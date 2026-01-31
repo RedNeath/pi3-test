@@ -4,24 +4,22 @@ A complete test of several web server frameworks to measure their average power-
 To run this test, here's the base docker compose file:
 ```yaml
 services:
-  # MySQL database
+  # MongoDB database
   db:
-    image: mysql:8.0
-    container_name: mysql_db
+    image: mongo:6.0
+    container_name: mongodb_db
     networks:
       - app-network
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MONGO_INITDB_DATABASE: transport_db
     ports:
-      - "3306:3306"
+      - "27017:27017"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - mongo_data:/data/db
     restart: unless-stopped
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all", "--quiet"]
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: "mongosh --eval \"try { rs.status().ok } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'db:27017' }] }); }\" || exit 1"
       interval: 10s
       timeout: 5s
       retries: 5
@@ -60,11 +58,9 @@ Then you will need to complete it with the appropriate image for the backend you
     container_name: express_backend
     networks:
       - app-network
+    working_dir: /app
     environment:
-      DB_HOST: db
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
+      MONGO_URI: mongodb://db:27017/transport_db?replicaSet=rs0
       NODE_ENV: production
     ports:
       - "3000:3000"
