@@ -4,22 +4,27 @@ A complete test of several web server frameworks to measure their average power-
 To run this test, here's the base docker compose file:
 ```yaml
 services:
-  # MongoDB database
+  # MariaDB database
   db:
-    image: mongo:6.0
-    container_name: mongodb_db
+    image: linuxserver/mariadb:latest
+    container_name: mariadb
     networks:
       - app-network
     environment:
-      MONGO_INITDB_DATABASE: transport_db
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-UTC}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
       - "27017:27017"
     volumes:
-      - mongo_data:/data/db
+      - mariadb_data:/config
     restart: unless-stopped
-    command: ["mongod", "--replSet", "rs0", "--bind_ip_all", "--quiet"]
     healthcheck:
-      test: "mongosh --eval \"try { rs.status().ok } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'db:27017' }] }); }\" || exit 1"
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -45,7 +50,7 @@ networks:
     driver: bridge
 
 volumes:
-  mongo_data:
+  mariadb_data:
 ```
 
 Then you will need to complete it with the appropriate image for the backend you want to test. See the list below.
@@ -60,7 +65,10 @@ Then you will need to complete it with the appropriate image for the backend you
       - app-network
     working_dir: /app
     environment:
-      MONGO_URI: mongodb://db:27017/transport_db?replicaSet=rs0
+      DB_HOST: db
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
       NODE_ENV: production
     ports:
       - "3000:3000"
