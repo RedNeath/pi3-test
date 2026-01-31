@@ -45,7 +45,7 @@ networks:
     driver: bridge
 
 volumes:
-  mysql_data:
+  mongo_data:
 ```
 
 Then you will need to complete it with the appropriate image for the backend you want to test. See the list below.
